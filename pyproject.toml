@@ -24,15 +24,14 @@ maintainers = [
 ]
 description = "Tools for manipulating search mode data."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 keywords = ["data-analysis", "astrophysics", "pulsars", "fast-radio-bursts", "python"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
 ]
-license = { text = "MIT", file = "LICENSE" }
-license-files = ["LICEN[CS]E*"]
+license = { text = "MIT" }
 
 [project.optional-dependencies]
 develop = [
