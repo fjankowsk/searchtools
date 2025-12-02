@@ -43,6 +43,6 @@ develop = [
 stools-align-lanes = "stools.apps.align_lanes:main"
 
 [project.urls]
-Homepage = "https://github.com/fjankowsk/stools"
-Issues = "https://github.com/fjankowsk/stools/issues"
-Repository = "https://github.com/fjankowsk/stools.git"
+Homepage = "https://github.com/fjankowsk/searchtools"
+Issues = "https://github.com/fjankowsk/searchtools/issues"
+Repository = "https://github.com/fjankowsk/searchtools.git"
