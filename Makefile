@@ -32,6 +32,6 @@ install:
 	${MAKE} clean
 
 uninstall:
-	${PIP} uninstall --yes fitpdf
+	${PIP} uninstall --yes stools
 
 .PHONY: help black clean install uninstall

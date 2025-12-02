@@ -3,6 +3,8 @@
 [![GitHub issues](https://img.shields.io/badge/issue_tracking-GitHub-blue.svg)](https://github.com/fjankowsk/searchtools/issues/)
 [![License - MIT](https://img.shields.io/pypi/l/fitpdf.svg)](https://github.com/fjankowsk/searchtools/blob/master/LICENSE)
 
+This repository contains tools to manipulate time domain search mode data. This is relevant for pulsar or fast radio burst (FRB) data analysis.
+
 ## Author ##
 
 The software is primarily developed and maintained by Fabian Jankowski. For more information, feel free to contact me via: fabian.jankowski at cnrs-orleans.fr.
