@@ -17,3 +17,16 @@ The easiest and recommended way to install the software is via the Python comman
 This will automatically install all dependencies. Depending on your Python installation, you might want to replace `pip` with `pip3` in the above command.
 
 ## Usage ##
+
+```console
+$ stools-align-lanes -h
+usage: stools-align-lanes [-h] files [files ...]
+
+Time align and frequency splice search mode data.
+
+positional arguments:
+  files       Names of search mode data files to process.
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
