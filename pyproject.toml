@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+build-frontend = "build"
+
+[tool.setuptools.packages.find]
+include = ["stools*"]
+
+[project]
+name = "stools"
+dynamic = ["version"]
+dependencies = [
+  "numpy",
+  "tqdm",
+  "your",
+]
+authors = [
+  { name="Fabian Jankowski", email="fjankowsk@gmail.com" }
+]
+maintainers = [
+  { name="Fabian Jankowski", email="fjankowsk@gmail.com" }
+]
+description = "Tools for manipulating search mode data."
+readme = "README.md"
+requires-python = ">=3.9"
+keywords = ["data-analysis", "astrophysics", "pulsars", "fast-radio-bursts", "python"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.optional-dependencies]
+develop = [
+  "black",
+]
+
+[project.scripts]
+stools-align-lanes = "stools.apps.align_lanes:main"
+
+[project.urls]
+Homepage = "https://github.com/fjankowsk/stools"
+Issues = "https://github.com/fjankowsk/stools/issues"
+Repository = "https://github.com/fjankowsk/stools.git"
