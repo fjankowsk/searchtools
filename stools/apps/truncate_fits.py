@@ -31,6 +31,12 @@ def parse_args():
         "files", type=str, nargs="+", help="Names of search mode data files to process."
     )
 
+    parser.add_argument(
+        "nrows",
+        type=int,
+        help="The number of the data rows to retain in the output files.",
+    )
+
     args = parser.parse_args()
 
     return args
@@ -46,11 +52,16 @@ def check_args(args):
         The commandline arguments.
     """
 
-    # sanity check files
+    # files
     for item in args.files:
         if not os.path.isfile(item):
             print(f"File does not exist: {item}")
             sys.exit(1)
+
+    # nrows
+    if not args.nrows >= 1:
+        print(f"The number of rows is invalid: {args.nrows}")
+        sys.exit(1)
 
 
 #
@@ -64,18 +75,20 @@ def main():
     check_args(args)
 
     print(args.files)
+    print(f"Retaining nrows: {args.nrows}")
 
     for item in args.files:
+        print(f"Processing: {item}")
+
         _root, _extension = os.path.splitext(item)
         outname = f"{_root}_truncated{_extension}"
 
         shutil.copy(item, outname)
 
         with fits.open(outname, mode="update") as hdul:
-            print(hdul.header)
             data = hdul[1].data
             # truncate
-            data = data[0:1737]
+            data = data[0 : args.nrows]
             print(data.shape)
             hdul[1].data = data
 
