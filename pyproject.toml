@@ -12,6 +12,7 @@ include = ["stools*"]
 name = "stools"
 dynamic = ["version"]
 dependencies = [
+  "astropy",
   "numpy",
   "tqdm",
   "your",
@@ -40,6 +41,7 @@ develop = [
 
 [project.scripts]
 stools-align-lanes = "stools.apps.align_lanes:main"
+stools-truncate-fits = "stools.apps.truncate_fits:main"
 
 [project.urls]
 Homepage = "https://github.com/fjankowsk/searchtools"
