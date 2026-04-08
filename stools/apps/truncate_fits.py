@@ -32,8 +32,9 @@ def parse_args():
     )
 
     parser.add_argument(
-        "nrows",
+        "--nrows",
         type=int,
+        required=True,
         help="The number of the data rows to retain in the output files.",
     )
 
