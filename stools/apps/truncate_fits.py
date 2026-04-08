@@ -35,6 +35,7 @@ def parse_args():
         "--nrows",
         type=int,
         required=True,
+        metavar=("value"),
         help="The number of the data rows to retain in the output files.",
     )
 
@@ -90,7 +91,6 @@ def main():
             data = hdul[1].data
             # truncate
             data = data[0 : args.nrows]
-            print(data.shape)
             hdul[1].data = data
 
     print("All done.")
