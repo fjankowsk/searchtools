@@ -30,3 +30,17 @@ positional arguments:
 optional arguments:
   -h, --help  show this help message and exit
 ```
+
+```console
+$ stools-truncate-fits -h
+usage: stools-truncate-fits [-h] --nrows value files [files ...]
+
+Truncate search mode PSRFITS data.
+
+positional arguments:
+  files          Names of search mode data files to process.
+
+optional arguments:
+  -h, --help     show this help message and exit
+  --nrows value  The number of the data rows to retain in the output files. (default: None)
+```
