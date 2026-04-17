@@ -89,18 +89,17 @@ def main():
                 header0["STT_SMJD"] + header0["STT_OFFS"]
             ) / float(SECPERDAY)
             start = Time(_mjd, format="mjd")
-            print(start.mjd)
-            print(start.iso)
+            print(f"Original start time: {start.mjd}, {start.iso}")
 
             header1 = hdul[1].header
             _offset = header1["NSUBOFFS"] * header1["NSBLK"] * header1["TBIN"]
             offset = TimeDelta(_offset * u.second)
-            print(offset)
+            print(f"NSUBOFFS time offset: {offset}")
 
             correct_start = start + offset
-            print(correct_start.mjd)
-            print(correct_start.iso)
+            print(f"Corrected start time: {correct_start.mjd}, {correct_start.iso}")
 
+            # update start time and reset nsuboffs
             mjd_integer = int((correct_start.jd1 - 2400000.5) + correct_start.jd2)
             mjd_fraction = (
                 correct_start.jd1 - 2400000.5 + correct_start.jd2
