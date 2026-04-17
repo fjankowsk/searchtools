@@ -1,9 +1,58 @@
+#
+#   2026 Fabian Jankowski
+#   Fix multi-chunk PSRFITS search mode data.
+#
+
+import argparse
 import os.path
 import shutil
+import sys
 
 from astropy.io import fits
 from astropy.time import Time, TimeDelta
 from astropy import units as u
+
+
+def parse_args():
+    """
+    Parse the commandline arguments.
+
+    Returns
+    -------
+    args: populated namespace
+        The commandline arguments.
+    """
+
+    parser = argparse.ArgumentParser(
+        description="Fix multi-chunk PSRFITS search mode data.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    parser.add_argument(
+        "files", type=str, nargs="+", help="Names of search mode data files to process."
+    )
+
+    args = parser.parse_args()
+
+    return args
+
+
+def check_args(args):
+    """
+    Sanity check the commandline arguments.
+
+    Parameters
+    ----------
+    args: populated namespace
+        The commandline arguments.
+    """
+
+    # files
+    for item in args.files:
+        if not os.path.isfile(item):
+            print(f"File does not exist: {item}")
+            sys.exit(1)
+
 
 #
 # MAIN
@@ -11,12 +60,23 @@ from astropy import units as u
 
 
 def main():
+    # handle command line arguments
+    args = parse_args()
+    check_args(args)
+
+    print(args.files)
+
     SECPERDAY = 24 * 60 * 60
 
-    files = ["merged.fits"]
-
-    for item in files:
+    for item in args.files:
         print(f"Processing: {item}")
+
+        # check if required
+        with fits.open(item, mode="readonly") as hdul:
+            header1 = hdul[1].header
+            if not header1["NSUBOFFS"] > 0:
+                print(f"NSUBOFFS values is not positive. Skipping file: {item}")
+                continue
 
         _root, _extension = os.path.splitext(item)
         outname = f"{_root}_fixed{_extension}"
