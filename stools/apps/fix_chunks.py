@@ -100,6 +100,8 @@ def main():
             print(f"Corrected start time: {correct_start.mjd}, {correct_start.iso}")
 
             # update start time and reset nsuboffs
+            hdul[0].header["DATE-OBS"] = correct_start.isot
+
             mjd_integer = int((correct_start.jd1 - 2400000.5) + correct_start.jd2)
             mjd_fraction = (
                 correct_start.jd1 - 2400000.5 + correct_start.jd2
