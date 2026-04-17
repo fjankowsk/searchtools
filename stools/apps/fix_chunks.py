@@ -4,6 +4,7 @@
 #
 
 import argparse
+from decimal import Decimal
 import os.path
 import shutil
 import sys
@@ -66,7 +67,8 @@ def main():
 
     print(args.files)
 
-    SECPERDAY = 24 * 60 * 60
+    SECPERDAY = Decimal(24 * 60 * 60)
+    MJDOFFSET = Decimal(2400000.5)
 
     for item in args.files:
         print(f"Processing: {item}")
@@ -85,16 +87,18 @@ def main():
 
         with fits.open(outname, mode="update") as hdul:
             header0 = hdul[0].header
-            _mjd = header0["STT_IMJD"] + (
-                header0["STT_SMJD"] + header0["STT_OFFS"]
-            ) / float(SECPERDAY)
+            _mjd = (
+                Decimal(header0["STT_IMJD"])
+                + (Decimal(header0["STT_SMJD"]) + Decimal(header0["STT_OFFS"]))
+                / SECPERDAY
+            )
             start = Time(_mjd, format="mjd")
             print(f"Original start time: {start.mjd}, {start.iso}")
 
             header1 = hdul[1].header
-            _offset_subints = header1["NSUBOFFS"]
-            _offset_samples = _offset_subints * header1["NSBLK"]
-            _offset_time = _offset_samples * header1["TBIN"]
+            _offset_subints = Decimal(header1["NSUBOFFS"])
+            _offset_samples = _offset_subints * Decimal(header1["NSBLK"])
+            _offset_time = _offset_samples * Decimal(header1["TBIN"])
             offset = TimeDelta(_offset_time * u.second)
             print(
                 f"NSUBOFFS offset: {_offset_subints} subints, {_offset_samples} samples, {offset.sec} s"
@@ -106,10 +110,10 @@ def main():
             # update start time and reset nsuboffs
             hdul[0].header["DATE-OBS"] = correct_start.isot
 
-            mjd_integer = int((correct_start.jd1 - 2400000.5) + correct_start.jd2)
+            mjd_integer = int((correct_start.jd1 - MJDOFFSET) + correct_start.jd2)
             mjd_fraction = (
-                correct_start.jd1 - 2400000.5 + correct_start.jd2
-            ) - mjd_integer
+                correct_start.jd1 - MJDOFFSET + correct_start.jd2 - mjd_integer
+            )
             smjd_integer = int(mjd_fraction * SECPERDAY)
             smjd_fraction = (mjd_fraction * SECPERDAY) - smjd_integer
 
