@@ -92,9 +92,13 @@ def main():
             print(f"Original start time: {start.mjd}, {start.iso}")
 
             header1 = hdul[1].header
-            _offset = header1["NSUBOFFS"] * header1["NSBLK"] * header1["TBIN"]
-            offset = TimeDelta(_offset * u.second)
-            print(f"NSUBOFFS time offset: {offset}")
+            _offset_subints = header1["NSUBOFFS"]
+            _offset_samples = _offset_subints * header1["NSBLK"]
+            _offset_time = _offset_samples * header1["TBIN"]
+            offset = TimeDelta(_offset_time * u.second)
+            print(
+                f"NSUBOFFS offset: {_offset_subints} subints, {_offset_samples} samples, {offset.sec} s"
+            )
 
             correct_start = start + offset
             print(f"Corrected start time: {correct_start.mjd}, {correct_start.iso}")
