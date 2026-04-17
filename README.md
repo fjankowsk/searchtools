@@ -32,10 +32,23 @@ optional arguments:
 ```
 
 ```console
+$ stools-fix-chunks -h
+usage: stools-fix-chunks [-h] files [files ...]
+
+Fix multi-chunk PSRFITS search mode data.
+
+positional arguments:
+  files       Names of search mode data files to process.
+
+optional arguments:
+  -h, --help  show this help message and exit
+```
+
+```console
 $ stools-truncate-fits -h
 usage: stools-truncate-fits [-h] --nrows value files [files ...]
 
-Truncate search mode PSRFITS data.
+Truncate PSRFITS search mode data.
 
 positional arguments:
   files          Names of search mode data files to process.
