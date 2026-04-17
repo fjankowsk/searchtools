@@ -9,7 +9,6 @@ import shutil
 import sys
 
 from astropy.io import fits
-import numpy as np
 
 
 def parse_args():
