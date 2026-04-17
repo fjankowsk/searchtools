@@ -97,7 +97,7 @@ def main():
             _offset_time = _offset_samples * header1["TBIN"]
             offset = TimeDelta(_offset_time * u.second)
             print(
-                f"NSUBOFFS offset: {_offset_subints} subints, {_offset_samples} samples, {offset.sec} s"
+                f"NSUBOFFS offset: {_offset_subints} subints, {_offset_samples} samples, {offset.sec:.3f} s"
             )
 
             correct_start = start + offset
