@@ -1,6 +1,6 @@
 #
 #   2026 Fabian Jankowski
-#   Truncate search mode PSRFITS data.
+#   Truncate PSRFITS search mode data.
 #
 
 import argparse
@@ -22,7 +22,7 @@ def parse_args():
     """
 
     parser = argparse.ArgumentParser(
-        description="Truncate search mode PSRFITS data.",
+        description="Truncate PSRFITS search mode data.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
