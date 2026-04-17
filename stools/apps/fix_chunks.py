@@ -5,42 +5,57 @@ from astropy.io import fits
 from astropy.time import Time, TimeDelta
 from astropy import units as u
 
-files = ["merged.fits"]
-SECPERDAY = 24 * 60 * 60
+#
+# MAIN
+#
 
-for item in files:
-    print(f"Processing: {item}")
 
-    _root, _extension = os.path.splitext(item)
-    outname = f"{_root}_fixed{_extension}"
+def main():
+    SECPERDAY = 24 * 60 * 60
 
-    shutil.copy(item, outname)
+    files = ["merged.fits"]
 
-    with fits.open(outname, mode="update") as hdul:
-        header0 = hdul[0].header
-        _mjd = header0["STT_IMJD"] + (
-            header0["STT_SMJD"] + header0["STT_OFFS"]
-        ) / float(SECPERDAY)
-        start = Time(_mjd, format="mjd")
-        print(start.mjd)
-        print(start.iso)
+    for item in files:
+        print(f"Processing: {item}")
 
-        header1 = hdul[1].header
-        _offset = header1["NSUBOFFS"] * header1["NSBLK"] * header1["TBIN"]
-        offset = TimeDelta(_offset * u.second)
-        print(offset)
+        _root, _extension = os.path.splitext(item)
+        outname = f"{_root}_fixed{_extension}"
 
-        correct_start = start + offset
-        print(correct_start.mjd)
-        print(correct_start.iso)
+        shutil.copy(item, outname)
 
-        mjd_integer = int((correct_start.jd1 - 2400000.5) + correct_start.jd2)
-        mjd_fraction = (correct_start.jd1 - 2400000.5 + correct_start.jd2) - mjd_integer
-        smjd_integer = int(mjd_fraction * SECPERDAY)
-        smjd_fraction = (mjd_fraction * SECPERDAY) - smjd_integer
+        with fits.open(outname, mode="update") as hdul:
+            header0 = hdul[0].header
+            _mjd = header0["STT_IMJD"] + (
+                header0["STT_SMJD"] + header0["STT_OFFS"]
+            ) / float(SECPERDAY)
+            start = Time(_mjd, format="mjd")
+            print(start.mjd)
+            print(start.iso)
 
-        hdul[0].header["STT_IMJD"] = mjd_integer
-        hdul[0].header["STT_SMJD"] = smjd_integer
-        hdul[0].header["STT_OFFS"] = smjd_fraction
+            header1 = hdul[1].header
+            _offset = header1["NSUBOFFS"] * header1["NSBLK"] * header1["TBIN"]
+            offset = TimeDelta(_offset * u.second)
+            print(offset)
 
-        hdul[1].header["NSUBOFFS"] = 0
+            correct_start = start + offset
+            print(correct_start.mjd)
+            print(correct_start.iso)
+
+            mjd_integer = int((correct_start.jd1 - 2400000.5) + correct_start.jd2)
+            mjd_fraction = (
+                correct_start.jd1 - 2400000.5 + correct_start.jd2
+            ) - mjd_integer
+            smjd_integer = int(mjd_fraction * SECPERDAY)
+            smjd_fraction = (mjd_fraction * SECPERDAY) - smjd_integer
+
+            hdul[0].header["STT_IMJD"] = mjd_integer
+            hdul[0].header["STT_SMJD"] = smjd_integer
+            hdul[0].header["STT_OFFS"] = smjd_fraction
+
+            hdul[1].header["NSUBOFFS"] = 0
+
+    print("All done.")
+
+
+if __name__ == "__main__":
+    main()

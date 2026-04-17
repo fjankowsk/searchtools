@@ -41,6 +41,7 @@ develop = [
 
 [project.scripts]
 stools-align-lanes = "stools.apps.align_lanes:main"
+stools-fix-chunks = "stools.apps.fix_chunks:main"
 stools-truncate-fits = "stools.apps.truncate_fits:main"
 
 [project.urls]
