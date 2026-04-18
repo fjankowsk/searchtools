@@ -118,7 +118,12 @@ def main():
 
             hdul[0].header["STT_IMJD"] = mjd_integer
             hdul[0].header["STT_SMJD"] = smjd_integer
-            hdul[0].header["STT_OFFS"] = smjd_fraction
+            # hdul[0].header["STT_OFFS"] = smjd_fraction
+
+            _card = fits.Card.fromstring(
+                f"STT_OFFS= {smjd_fraction} / [s] Start time offset (D)"
+            )
+            hdul[0].header["STT_OFFS"] = _card
 
             hdul[1].header["NSUBOFFS"] = 0
 
