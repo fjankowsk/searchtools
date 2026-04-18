@@ -67,8 +67,7 @@ def main():
 
     print(args.files)
 
-    SECPERDAY = Decimal(24 * 60 * 60)
-    MJDOFFSET = Decimal(2400000.5)
+    SECPERDAY = Decimal("86400")
 
     for item in args.files:
         print(f"Processing: {item}")
@@ -110,12 +109,12 @@ def main():
             # update start time and reset nsuboffs
             hdul[0].header["DATE-OBS"] = correct_start.isot
 
-            mjd_integer = int((correct_start.jd1 - MJDOFFSET) + correct_start.jd2)
-            mjd_fraction = (
-                correct_start.jd1 - MJDOFFSET + correct_start.jd2 - mjd_integer
-            )
+            _correct_mjd = correct_start.to_value("mjd", subfmt="decimal")
+
+            mjd_integer = int(_correct_mjd)
+            mjd_fraction = _correct_mjd - mjd_integer
             smjd_integer = int(mjd_fraction * SECPERDAY)
-            smjd_fraction = (mjd_fraction * SECPERDAY) - smjd_integer
+            smjd_fraction = mjd_fraction * SECPERDAY - smjd_integer
 
             hdul[0].header["STT_IMJD"] = mjd_integer
             hdul[0].header["STT_SMJD"] = smjd_integer
