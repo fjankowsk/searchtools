@@ -118,6 +118,10 @@ def main():
 
             hdul[0].header["STT_IMJD"] = mjd_integer
             hdul[0].header["STT_SMJD"] = smjd_integer
+            # XXX: this reduces the precision to double, which is ok
+            # ideally, we want to retain the full decimal precision
+            # we need to use the fits free card for this
+            # unfortunately, it does not work at the moment
             hdul[0].header["STT_OFFS"] = float(smjd_fraction)
 
             hdul[1].header["NSUBOFFS"] = 0
