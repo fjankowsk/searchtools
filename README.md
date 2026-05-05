@@ -29,6 +29,8 @@ positional arguments:
 
 optional arguments:
   -h, --help  show this help message and exit
+
+This program time-aligns and splices frequency sub-band data together. It works for SIGPROC filterbank files, where each sub-band or lane contains a fraction of the total bandwidth. The resulting data are written to the merged.fil file. The time alignment is performed with better than sampling-time precision using Fourier shifting.
 ```
 
 ```console
