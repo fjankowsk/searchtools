@@ -24,10 +24,16 @@ def parse_args():
         The commandline arguments.
     """
 
+    _epilog = """"\
+This program fixes time-tagging issues in multi-chunk, contiguous PSRFITS search-mode data. Contiguous search mode data can be split into several files (data chunks), where the second and further files are identified by non-zero values of the NSUBOFFS keyword in the SUBINT HDU, which specifies the subint offset from the start of the first file. Later files carry the starting time of the first file. Processing software is expected to advance the starting time of the later files by the NSUBOFFS amount. However, in practice, this does not work in DSPSR (May 2026).
+
+This program fixes the issue by advancing the starting times of the later files by their NSUBOFFS amounts and resetting their NSUBOFFS values to zero. Each file in the fixed multi-chunk dataset has NSUBOFFS = 0, but now has fully consecutive starting times as given by stt_imjd, stt_smjd, and stt_offs.
+"""
+
     parser = argparse.ArgumentParser(
         description="Fix multi-chunk contiguous PSRFITS search-mode data.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog="This program fixes time-tagging issues in multi-chunk, contiguous PSRFITS search-mode data. Contiguous search mode data can be split into several files (data chunks), where the second and further files are identified by non-zero values of the NSUBOFFS keyword in the SUBINT HDU, which specifies the subint offset from the start of the first file. Later files carry the starting time of the first file. Processing software is expected to advance the starting time of the later files by the NSUBOFFS amount. However, in practice, this does not work in DSPSR (May 2026). This program fixes the issue by advancing the starting times of the later files by their NSUBOFFS amounts and resetting their NSUBOFFS values to zero. Each file in the fixed multi-chunk dataset has NSUBOFFS = 0, but now has fully consecutive starting times as given by stt_imjd, stt_smjd, and stt_offs.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=_epilog,
     )
 
     parser.add_argument(
