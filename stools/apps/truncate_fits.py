@@ -11,6 +11,12 @@ import sys
 from astropy.io import fits
 
 
+class CustomFormatter(
+    argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter
+):
+    pass
+
+
 def parse_args():
     """
     Parse the commandline arguments.
@@ -21,9 +27,16 @@ def parse_args():
         The commandline arguments.
     """
 
+    _epilog = """\
+This program truncates PSRFITS search mode data to a given number of sub:nrows of samples, specified on the command line.
+
+This is useful for time-aligned data that differ in row count due to subtle offsets in backend process or thread synchronisation when a stop command is received. The program truncates all input files to the same number of rows so that they can be processed. A common task is to truncate all frequency lanes to the same nrows to splice them together.
+"""
+
     parser = argparse.ArgumentParser(
         description="Truncate PSRFITS search mode data.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_epilog,
+        formatter_class=CustomFormatter,
     )
 
     parser.add_argument(

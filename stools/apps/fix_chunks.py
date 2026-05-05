@@ -32,8 +32,8 @@ This program fixes the issue by advancing the starting times of the later files 
 
     parser = argparse.ArgumentParser(
         description="Fix multi-chunk contiguous PSRFITS search-mode data.",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=_epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
     parser.add_argument(
