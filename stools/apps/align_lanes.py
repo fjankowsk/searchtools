@@ -13,6 +13,12 @@ from your import Your
 from your.formats.filwriter import make_sigproc_object
 
 
+class CustomFormatter(
+    argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter
+):
+    pass
+
+
 def parse_args():
     """
     Parse the commandline arguments.
@@ -23,9 +29,14 @@ def parse_args():
         The commandline arguments.
     """
 
+    _epilog = """\
+This program time-aligns and splices frequency sub-band data together. It works for SIGPROC filterbank files, where each sub-band or lane contains a fraction of the total bandwidth. The resulting data are written to the merged.fil file. The time alignment is performed with better than sampling-time precision using Fourier shifting.
+"""
+
     parser = argparse.ArgumentParser(
         description="Time align and frequency splice search mode data.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog=_epilog,
+        formatter_class=CustomFormatter,
     )
 
     parser.add_argument(
