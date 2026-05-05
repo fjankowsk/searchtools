@@ -49,8 +49,8 @@ This program fixes the issue by advancing the starting times of the later files 
 ```
 
 ```console
-$ stools-truncate-fits -h
-usage: stools-truncate-fits [-h] --nrows value files [files ...]
+$ stools-truncate-rows -h
+usage: stools-truncate-rows [-h] --nrows value files [files ...]
 
 Truncate PSRFITS search mode data.
 
@@ -60,4 +60,8 @@ positional arguments:
 optional arguments:
   -h, --help     show this help message and exit
   --nrows value  The number of the data rows to retain in the output files. (default: None)
+
+This program truncates PSRFITS search mode data to a given number of sub:nrows of samples, specified on the command line.
+
+This is useful for time-aligned data that differ in row count due to subtle offsets in backend process or thread synchronisation when a stop command is received. The program truncates all input files to the same number of rows so that they can be processed. A common task is to truncate all frequency lanes to the same nrows to splice them together.
 ```
