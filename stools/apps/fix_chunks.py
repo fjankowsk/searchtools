@@ -27,7 +27,12 @@ def parse_args():
     _epilog = """\
 This program fixes time-tagging issues in multi-chunk, contiguous PSRFITS search mode data. Contiguous search mode data can be split into several files (data chunks), where the second and further files are identified by non-zero values of the NSUBOFFS keyword in the SUBINT HDU, which specifies the subint offset from the start of the first file. Later files carry the starting time of the first file. Processing software is expected to advance the starting time of the later files by the NSUBOFFS amount. However, in practice, this does not work in DSPSR (May 2026).
 
-This program fixes the issue by advancing the starting times of the later files by their NSUBOFFS amounts and resetting their NSUBOFFS values to zero. Each file in the fixed multi-chunk dataset has NSUBOFFS = 0, but now has fully consecutive starting times as given by stt_imjd, stt_smjd, and stt_offs.
+This program fixes the issue by advancing the starting times of the later files by their NSUBOFFS amounts and resetting their NSUBOFFS values to zero. Each file in the fixed multi-chunk dataset has NSUBOFFS = 0, but now has fully consecutive starting times as given by STT_IMJD, STT_SMJD, and STT_OFFS.
+
+Select the operating mode depending on your data.
+* Use the 'default' mode if the telescope backend advances the NSUBOFFS value, but keeps the high-resolution time stamp (STT_IMJD, STT_SMJD, and STT_OFFS) from the first file. This is the case for NRT data.
+
+* Use the 'parkes' mode if the telescope backend advances BOTH the high-resolution multi-chunk time stamp AND the NSUBOFFS value. This is the case for Parkes UWL / Medusa data.
 """
 
     parser = argparse.ArgumentParser(
@@ -38,6 +43,17 @@ This program fixes the issue by advancing the starting times of the later files 
 
     parser.add_argument(
         "files", type=str, nargs="+", help="Names of search mode data files to process."
+    )
+
+    parser.add_argument(
+        "--mode",
+        dest="mode",
+        choices=[
+            "default",
+            "parkes",
+        ],
+        default="default",
+        help="Operating mode. In 'default' mode, it recomputes the starting time by advancing it by the given NSUBOFFS offsets and resets NSUBOFFS to zero. In 'parkes' mode, it only resets the NSUBOFFS values to zero.",
     )
 
     args = parser.parse_args()
@@ -74,6 +90,15 @@ def main():
 
     print(args.files)
 
+    if args.mode == "default":
+        print(
+            "Recomputing multi-chunk start times from NSUBOFFS and resetting NSUBOFFS to zero."
+        )
+    elif args.mode == "parkes":
+        print("Resetting NSUBOFFS to zero.")
+    else:
+        raise NotImplementedError(f"Operating mode not implemented: {args.mode}")
+
     SECPERDAY = Decimal("86400")
 
     for item in args.files:
@@ -88,48 +113,49 @@ def main():
 
         _root, _extension = os.path.splitext(item)
         outname = f"{_root}_fixed{_extension}"
-
         shutil.copy(item, outname)
 
         with fits.open(outname, mode="update") as hdul:
             header0 = hdul[0].header
-            _mjd = (
-                Decimal(header0["STT_IMJD"])
-                + (Decimal(header0["STT_SMJD"]) + Decimal(header0["STT_OFFS"]))
-                / SECPERDAY
-            )
-            start = Time(_mjd, format="mjd")
-            print(f"Original start time: {start.mjd}, {start.iso}")
 
-            header1 = hdul[1].header
-            _offset_subints = Decimal(header1["NSUBOFFS"])
-            _offset_samples = _offset_subints * Decimal(header1["NSBLK"])
-            _offset_time = _offset_samples * Decimal(header1["TBIN"])
-            offset = TimeDelta(_offset_time * u.second)
-            print(
-                f"NSUBOFFS offset: {_offset_subints} subints, {_offset_samples} samples, {offset.sec} s"
-            )
+            if args.mode == "default":
+                _mjd = (
+                    Decimal(header0["STT_IMJD"])
+                    + (Decimal(header0["STT_SMJD"]) + Decimal(header0["STT_OFFS"]))
+                    / SECPERDAY
+                )
+                start = Time(_mjd, format="mjd")
+                print(f"Original start time: {start.mjd}, {start.iso}")
 
-            correct_start = start + offset
-            print(f"Corrected start time: {correct_start.mjd}, {correct_start.iso}")
+                header1 = hdul[1].header
+                _offset_subints = Decimal(header1["NSUBOFFS"])
+                _offset_samples = _offset_subints * Decimal(header1["NSBLK"])
+                _offset_time = _offset_samples * Decimal(header1["TBIN"])
+                offset = TimeDelta(_offset_time * u.second)
+                print(
+                    f"NSUBOFFS offset: {_offset_subints} subints, {_offset_samples} samples, {offset.sec} s"
+                )
 
-            # update start time and reset nsuboffs
-            hdul[0].header["DATE-OBS"] = correct_start.isot
+                correct_start = start + offset
+                print(f"Corrected start time: {correct_start.mjd}, {correct_start.iso}")
 
-            _correct_mjd = correct_start.to_value("mjd", subfmt="decimal")
+                # update start time and reset nsuboffs
+                hdul[0].header["DATE-OBS"] = correct_start.isot
 
-            mjd_integer = int(_correct_mjd)
-            mjd_fraction = _correct_mjd - mjd_integer
-            smjd_integer = int(mjd_fraction * SECPERDAY)
-            smjd_fraction = mjd_fraction * SECPERDAY - smjd_integer
+                _correct_mjd = correct_start.to_value("mjd", subfmt="decimal")
 
-            hdul[0].header["STT_IMJD"] = mjd_integer
-            hdul[0].header["STT_SMJD"] = smjd_integer
-            # XXX: this reduces the precision to double, which is ok
-            # ideally, we want to retain the full decimal precision
-            # we need to use the fits free card for this
-            # unfortunately, it does not work at the moment
-            hdul[0].header["STT_OFFS"] = float(smjd_fraction)
+                mjd_integer = int(_correct_mjd)
+                mjd_fraction = _correct_mjd - mjd_integer
+                smjd_integer = int(mjd_fraction * SECPERDAY)
+                smjd_fraction = mjd_fraction * SECPERDAY - smjd_integer
+
+                hdul[0].header["STT_IMJD"] = mjd_integer
+                hdul[0].header["STT_SMJD"] = smjd_integer
+                # XXX: this reduces the precision to double, which is ok
+                # ideally, we want to retain the full decimal precision
+                # we need to use the fits free card for this
+                # unfortunately, it does not work at the moment
+                hdul[0].header["STT_OFFS"] = float(smjd_fraction)
 
             hdul[1].header["NSUBOFFS"] = 0
 
