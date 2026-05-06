@@ -42,7 +42,7 @@ Select the operating mode depending on your data.
 """
 
     parser = argparse.ArgumentParser(
-        description="Fix multi-chunk contiguous PSRFITS search-mode data.",
+        description="Fix multi-chunk contiguous PSRFITS search mode data.",
         epilog=_epilog,
         formatter_class=CustomFormatter,
     )
