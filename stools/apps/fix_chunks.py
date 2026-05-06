@@ -14,6 +14,12 @@ from astropy.time import Time, TimeDelta
 from astropy import units as u
 
 
+class CustomFormatter(
+    argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter
+):
+    pass
+
+
 def parse_args():
     """
     Parse the commandline arguments.
@@ -38,7 +44,7 @@ Select the operating mode depending on your data.
     parser = argparse.ArgumentParser(
         description="Fix multi-chunk contiguous PSRFITS search-mode data.",
         epilog=_epilog,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=CustomFormatter,
     )
 
     parser.add_argument(
