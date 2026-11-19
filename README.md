@@ -34,7 +34,28 @@ This program time-aligns and splices frequency sub-band data together. It works 
 ```
 
 ```console
-$ stools-fix-chunks -h
+$ stools-convert-data -h
+usage: stools-convert-data [-h] [-o filename] [--plot] [--rfi] [--rmedian] [--2dcorr] [--tscrunch TSCRUNCH] file
+
+Convert PSRFITS to SIGPROC filterbank data.
+
+positional arguments:
+  file                  Filename of PSRFITS file to process.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -o filename, --output filename
+                        Name of the output SIGPROC filerbank file. (default: converted.fil)
+  --plot                Display the data at each step. (default: False)
+  --rfi                 Perform RFI excision. (default: False)
+  --rmedian             Remove a running median from the data in each channel to flatten the baseline and bandpass. (default:
+                        False)
+  --2dcorr              Remove the 6 minute analogue pointing jumps by cross-correlating with a 2D template. (default: False)
+  --tscrunch TSCRUNCH   Decimate the data in time by this factor. (default: None)
+```
+
+```console
+$$ stools-fix-chunks -h
 usage: stools-fix-chunks [-h] [--mode {default,parkes}] files [files ...]
 
 Fix multi-chunk contiguous PSRFITS search mode data.
@@ -45,8 +66,9 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --mode {default,parkes}
-                        Operating mode. In 'default' mode, it recomputes the starting time by advancing it by the given NSUBOFFS offsets and resets NSUBOFFS to zero. In 'parkes' mode, it only resets the NSUBOFFS values to zero. (default:
-                        default)
+                        Operating mode. In 'default' mode, it recomputes the starting time by advancing it by the given
+                        NSUBOFFS offsets and resets NSUBOFFS to zero. In 'parkes' mode, it only resets the NSUBOFFS values to
+                        zero. (default: default)
 
 This program fixes time-tagging issues in multi-chunk, contiguous PSRFITS search mode data. Contiguous search mode data can be split into several files (data chunks), where the second and further files are identified by non-zero values of the NSUBOFFS keyword in the SUBINT HDU, which specifies the subint offset from the start of the first file. Later files carry the starting time of the first file. Processing software is expected to advance the starting time of the later files by the NSUBOFFS amount. However, in practice, this does not work in DSPSR (May 2026).
 
