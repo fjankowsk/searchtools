@@ -55,7 +55,7 @@ optional arguments:
 ```
 
 ```console
-$$ stools-fix-chunks -h
+$ stools-fix-chunks -h
 usage: stools-fix-chunks [-h] [--mode {default,parkes}] files [files ...]
 
 Fix multi-chunk contiguous PSRFITS search mode data.
