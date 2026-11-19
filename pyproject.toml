@@ -14,6 +14,7 @@ dynamic = ["version"]
 dependencies = [
   "astropy",
   "numpy",
+  "scipy",
   "tqdm",
   "your",
 ]
@@ -41,6 +42,7 @@ develop = [
 
 [project.scripts]
 stools-align-lanes = "stools.apps.align_lanes:main"
+stools-convert-data = "stools.apps.convert_data:main"
 stools-fix-chunks = "stools.apps.fix_chunks:main"
 stools-truncate-rows = "stools.apps.truncate_rows:main"
 
