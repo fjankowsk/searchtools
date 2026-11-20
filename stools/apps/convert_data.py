@@ -205,7 +205,7 @@ def decimate_2d(data, f0, f1):
     return decimated
 
 
-def convert_to_integer(data, nbit=8):
+def convert_to_integer(data, nbit=8, data_offset=None, data_scale=None):
     """
     Convert the float data to unsigned integers for storing in SIGPROC
     filterbank files or PSRFITS ones.
@@ -218,6 +218,10 @@ def convert_to_integer(data, nbit=8):
         The input data.
     nbit: int
         The number of bits in the output data.
+    data_offset: float or None
+        The data offset to use. If None, determine from the data.
+    data_scale: float or None
+        The data scale to use. If None, determine from the data.
 
     Returns
     -------
@@ -243,15 +247,18 @@ def convert_to_integer(data, nbit=8):
     # real_value = (data_value - zero_offset) * data_scale + data_offset
     # => data_value = (real_value - data_offset) / data_scale + zero_offset
     zero_offset = 2 ** (nbit - 1) - 0.5
-    data_offset = np.mean(data)
-    # add some extra dynamic range
-    data_scale = (np.max(data) - data_offset) / float(zero_offset - 0.5)
+
+    if data_offset is None:
+        data_offset = np.mean(data)
+
+    if data_scale is None:
+        # add some extra dynamic range
+        data_scale = (np.max(data) - data_offset) / float(zero_offset - 0.5)
 
     print(
-        "Zero offset, data offset, data scale: {0}, {1}, {2}".format(
-            zero_offset, data_offset, data_scale
-        )
+        f"Zero offset, data offset, data scale: {zero_offset}, {data_offset}, {data_scale}"
     )
+
     if data_scale > 0:
         scaled_data = (data - data_offset) / data_scale + zero_offset
     else:
@@ -529,6 +536,10 @@ def main():
     impulse /= np.linalg.norm(impulse)
     impulse_ones = np.ones_like(impulse)
 
+    # determine these from the first gulp
+    data_offset = None
+    data_scale = None
+
     while istart < nspectra:
         # always produce total intensity data
         data = robj.get_data(nstart=istart, nsamp=gulp, pol=0, npoln=1)
@@ -638,6 +649,13 @@ def main():
         # normalise again after rfi excision
         data, _, _ = normalise(data)
 
+        # determine data offset and scale from the first gulp
+        if data_offset is None:
+            mask_zapped = np.isclose(data, 0.0)
+            data_offset = np.mean(data[~mask_zapped])
+            zero_offset = 2 ** (nbit - 1) - 0.5
+            data_scale = (np.max(data) - data_offset) / float(zero_offset - 0.5)
+
         # decimate the FT data in time
         if args.tscrunch is not None:
             if nsamp % args.tscrunch > 0:
@@ -653,7 +671,9 @@ def main():
             data = decimate_2d(data, f0=1, f1=args.tscrunch)
 
         # convert to integers
-        data_int = convert_to_integer(data, nbit=nbit)
+        data_int = convert_to_integer(
+            data, nbit=nbit, data_offset=data_offset, data_scale=data_scale
+        )
 
         if args.plot:
             plot_data_2d(data_int, "integer")
