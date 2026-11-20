@@ -377,7 +377,7 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle):
 
     # dm sweep
     fchans = fch1 + foff * np.arange(nchan)
-    for ichan, f_hi in fchans:
+    for ichan, f_hi in enumerate(fchans):
         f_lo = f_hi + foff
         sweep_end = 0.5 * get_dm_smearing(f_lo, f_hi, coherent_dm)
         delta_sweep = int(np.ceil(sweep_end / robj.your_header.tsamp))
