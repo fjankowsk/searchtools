@@ -384,17 +384,18 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle, window):
         sweep_end = 0.5 * get_dm_smearing(f_lo, f_hi, coherent_dm)
         delta_sweep = int(np.ceil(sweep_end / robj.your_header.tsamp))
 
-        # right side
-        idx_end = idx_middle + delta_sweep
-        if idx_end > nsamp - 1:
-            idx_end = nsamp - 1
-        impulse[ichan, idx_middle:idx_end] = 1.0
-
         # left side
         idx_start = idx_middle - delta_sweep
         if idx_start < 0:
             idx_start = 0
-        impulse[ichan, idx_start:idx_middle] = 1.0
+
+        # right side
+        idx_end = idx_middle + delta_sweep
+        if idx_end > nsamp - 1:
+            idx_end = nsamp - 1
+
+        assert idx_start < idx_end
+        impulse[ichan, idx_start:idx_end] = 1.0
 
     if window:
         sigma = int(np.ceil(0.5 * impulse_time_max / robj.your_header.tsamp))
@@ -573,7 +574,7 @@ def main():
             print("Maximum cross-correlation: {0:.4f}".format(np.max(normcorr)))
             argmax = np.argmax(normcorr)
             argmax = np.unravel_index(argmax, normcorr.shape)
-            argmax_sample = argmax[1]
+            idx_middle = argmax[1]
 
             if args.plot:
                 plot_data_2d(data, "data")
@@ -581,23 +582,29 @@ def main():
                 plot_data_2d(normcorr, "correlation", showmax=True)
 
             if np.max(normcorr) > 0.1:
-                # remove the sweep
-                zap_array = get_impulse_template(
-                    robj,
-                    fch1,
-                    foff,
-                    shape=(nchan, nsamp),
-                    idx_middle=argmax_sample,
-                    window=False,
-                )
-                zap_array += 1.0
-                _mask = np.isclose(zap_array, 2.0)
-                zap_array[_mask] = 0.0
+                # remove the time samples corresponding to the maximum sweep
+                # in the lowest frequency channel
+                # we remove the entire box, because neighboring samples are affected
+                # even in the high-frequency part of the band
+                f_hi = fch1 + (nchan - 1) * foff
+                f_lo = f_hi + foff
+                sweep_end = 0.5 * get_dm_smearing(f_lo, f_hi, coherent_dm)
+                delta_sweep = int(np.ceil(sweep_end / robj.your_header.tsamp))
 
-                data = data * zap_array
+                # left side
+                idx_start = idx_middle - delta_sweep
+                if idx_start < 0:
+                    idx_start = 0
+
+                # right side
+                idx_end = idx_middle + delta_sweep
+                if idx_end > nsamp - 1:
+                    idx_end = nsamp - 1
+
+                assert idx_start < idx_end
+                data[:, idx_start:idx_end] = 0.0
 
                 if args.plot:
-                    plot_data_2d(zap_array, "zap-array")
                     plot_data_2d(data, "post-zap")
 
         if args.rfi:
