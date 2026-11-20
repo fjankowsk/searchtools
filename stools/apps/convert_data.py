@@ -375,6 +375,7 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle, window):
     # and about 670 ms in nov 2025
     # make the template slightly too narrow, use 75 %
     width_boxcar = 10.0e-3  # in seconds
+    assert width_boxcar > 2.0 * robj.your_header.tsamp
 
     # this is the dispersive sweep in the lowest frequency channel
     f_hi = np.min(fchans)
@@ -385,10 +386,12 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle, window):
     impulse_nsamp = int(np.ceil(impulse_time_max / robj.your_header.tsamp))
     assert impulse_nsamp <= nsamp
 
-    nsamp_boxcar_half = int(np.ceil(0.5 * width_boxcar / robj.your_header.tsamp))
-    idx_start = idx_middle - nsamp_boxcar_half
-    idx_end = idx_middle + nsamp_boxcar_half
-    impulse[:, idx_start:idx_end] = 1.0
+    # nsamp_boxcar_half = int(np.ceil(0.5 * width_boxcar / robj.your_header.tsamp))
+    # idx_start = idx_middle - nsamp_boxcar_half
+    # idx_end = idx_middle + nsamp_boxcar_half
+    # impulse[:, idx_start:idx_end] = 1.0
+
+    nsamp_boxcar_half = 0
 
     # dm sweep
     for ichan, f_hi in enumerate(fchans):
