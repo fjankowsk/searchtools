@@ -363,7 +363,7 @@ def get_impulse_template(robj, shape, idx_middle):
     # boxcar impulse
     # the boxcar impulse was ~40 ms wide in june 2023
     # and about 200 ms in may 2024
-    width_boxcar = 40.0e-3 # in seconds
+    width_boxcar = 40.0e-3  # in seconds
     nsamp_boxcar = int(np.ceil(width_boxcar / robj.your_header.tsamp))
     nsamp_boxcar_half = int(np.ceil(0.5 * nsamp_boxcar))
     idx_start = idx_middle - nsamp_boxcar_half
@@ -388,8 +388,9 @@ def get_impulse_template(robj, shape, idx_middle):
             idx_start = 0
         impulse[ichan, idx_start:idx_middle] = 1.0
 
-    # flip the frequency order as we did that in the filterbank data
-    impulse = np.flipud(impulse)
+    # flip frequency band
+    if robj.foff > 0:
+        impulse = np.flipud(impulse)
 
     return impulse
 
@@ -579,7 +580,6 @@ def main():
         if args.rfi:
             # iqrm & acc1 masks
             mask = automatic_channel_mask_fj(data)
-
             print(
                 "Channels masked based on stddev (via IQRM) and acc1: {} / {} ({:.2%})".format(
                     mask.sum(), nchan, mask.sum() / nchan
