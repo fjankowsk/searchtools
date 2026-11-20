@@ -519,6 +519,7 @@ def main():
     )
     impulse -= np.mean(impulse)
     impulse /= np.linalg.norm(impulse)
+    impulse_ones = np.ones_like(impulse)
 
     while istart < nspectra:
         # always produce total intensity data
@@ -553,13 +554,11 @@ def main():
             _chunk = data - np.mean(data)
             _chunk /= np.linalg.norm(_chunk)
 
-            ones = np.ones_like(impulse)
-            s_sum = cross_correlate_2d(_chunk, ones, mode="same")
-            ss_sum = cross_correlate_2d(_chunk**2, ones, mode="same")
+            s_sum = cross_correlate_2d(_chunk, impulse_ones, mode="same")
+            ss_sum = cross_correlate_2d(_chunk**2, impulse_ones, mode="same")
 
-            n = impulse.size
             # zero-mean, unit-norm window at each position
-            local_norm = np.sqrt(ss_sum - s_sum**2 / n)
+            local_norm = np.sqrt(ss_sum - s_sum**2 / impulse.size)
 
             corr = cross_correlate_2d(_chunk, impulse, mode="same")
             normcorr = np.where(local_norm > 1e-12, corr / local_norm, 0.0)
@@ -569,10 +568,9 @@ def main():
                     np.max(corr), np.max(normcorr)
                 )
             )
-            argmax = np.argmax(corr)
+            argmax = np.argmax(normcorr)
             argmax = np.unravel_index(argmax, corr.shape)
             argmax_sample = argmax[1]
-            print(f"Time sample of the maximum cross-correlation: {argmax_sample}")
 
             if args.plot:
                 plot_data_2d(data, "data")
@@ -580,7 +578,7 @@ def main():
                 plot_data_2d(corr, "correlation", showmax=True)
                 plot_data_2d(normcorr, "normed correlation", showmax=True)
 
-            if np.max(corr) > 0.1:
+            if np.max(normcorr) > 0.1:
                 # remove the sweep
                 zap_array = get_impulse_template(
                     robj, fch1, foff, shape=(nchan, nsamp), idx_middle=argmax_sample
