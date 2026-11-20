@@ -316,6 +316,19 @@ def get_dm_smearing(f_lo, f_hi, dm):
     return dt
 
 
+def gaussian_window(shape, sigma):
+    """
+    2D Gaussian window.
+    """
+
+    h, w = shape
+    y = np.arange(h) - h // 2
+    x = np.arange(w) - w // 2
+    Y, X = np.meshgrid(y, x, indexing="ij")
+
+    return np.exp(-(X**2 + Y**2) / (2 * sigma**2))
+
+
 def get_impulse_template(robj, fch1, foff, shape, idx_middle):
     """
     Construct a 2D impulse template in FT order.
@@ -392,6 +405,8 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle):
         if idx_start < 0:
             idx_start = 0
         impulse[ichan, idx_start:idx_middle] = 1.0
+
+    impulse *= gaussian_window(shape, sigma=int(np.ceil(0.5 * impulse_nsamp)))
 
     return impulse
 
