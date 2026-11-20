@@ -560,22 +560,17 @@ def main():
             # zero-mean, unit-norm window at each position
             local_norm = np.sqrt(ss_sum - s_sum**2 / impulse.size)
 
-            corr = cross_correlate_2d(_chunk, impulse, mode="same")
-            normcorr = np.where(local_norm > 1e-12, corr / local_norm, 0.0)
+            _corr = cross_correlate_2d(_chunk, impulse, mode="same")
+            normcorr = np.where(local_norm > 1e-12, _corr / local_norm, 0.0)
 
-            print(
-                "Maximum cross-correlation: {0:.4f} {1:.4f}".format(
-                    np.max(corr), np.max(normcorr)
-                )
-            )
+            print("Maximum cross-correlation: {0:.4f} {1:.4f}".format(np.max(normcorr)))
             argmax = np.argmax(normcorr)
-            argmax = np.unravel_index(argmax, corr.shape)
+            argmax = np.unravel_index(argmax, normcorr.shape)
             argmax_sample = argmax[1]
 
             if args.plot:
                 plot_data_2d(data, "data")
                 plot_data_2d(impulse, "template")
-                plot_data_2d(corr, "correlation", showmax=True)
                 plot_data_2d(normcorr, "normed correlation", showmax=True)
 
             if np.max(normcorr) > 0.1:
