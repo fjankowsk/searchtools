@@ -366,32 +366,17 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle, window):
     fchans = fch1 + foff * np.arange(nchan)
 
     # assemble the impulse template
-    # boxcar width of the impulse plus twice the dm smearing time
+    # which is just the intrachannel dm smearing
     impulse = np.zeros(shape=shape)
-
-    # boxcar part of the impulse
-    # the boxcar impulse was ~40 ms wide in june 2023
-    # and about 200 ms in may 2024
-    # and about 670 ms in nov 2025
-    # make the template slightly too narrow, use 75 %
-    width_boxcar = 10.0e-3  # in seconds
-    assert width_boxcar > 2.0 * robj.your_header.tsamp
 
     # this is the dispersive sweep in the lowest frequency channel
     f_hi = np.min(fchans)
     f_lo = f_hi + foff
-    impulse_time_max = width_boxcar + get_dm_smearing(f_lo, f_hi, coherent_dm)
+    impulse_time_max = get_dm_smearing(f_lo, f_hi, coherent_dm)
     print(f"Maximum impulse time: {impulse_time_max:.2f} s")
 
     impulse_nsamp = int(np.ceil(impulse_time_max / robj.your_header.tsamp))
     assert impulse_nsamp <= nsamp
-
-    # nsamp_boxcar_half = int(np.ceil(0.5 * width_boxcar / robj.your_header.tsamp))
-    # idx_start = idx_middle - nsamp_boxcar_half
-    # idx_end = idx_middle + nsamp_boxcar_half
-    # impulse[:, idx_start:idx_end] = 1.0
-
-    nsamp_boxcar_half = 0
 
     # dm sweep
     for ichan, f_hi in enumerate(fchans):
@@ -400,13 +385,13 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle, window):
         delta_sweep = int(np.ceil(sweep_end / robj.your_header.tsamp))
 
         # right side
-        idx_end = idx_middle + nsamp_boxcar_half + delta_sweep
+        idx_end = idx_middle + delta_sweep
         if idx_end > nsamp - 1:
             idx_end = nsamp - 1
         impulse[ichan, idx_middle:idx_end] = 1.0
 
         # left side
-        idx_start = idx_middle - nsamp_boxcar_half - delta_sweep
+        idx_start = idx_middle - delta_sweep
         if idx_start < 0:
             idx_start = 0
         impulse[ichan, idx_start:idx_middle] = 1.0
