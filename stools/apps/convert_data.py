@@ -360,8 +360,9 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle):
     # and about 670 ms in nov 2025
     width_boxcar = 670.0e-3  # in seconds
 
-    f_lo = np.min(fchans)
-    f_hi = np.max(fchans)
+    # this is the dispersive sweep in the lowest frequency channel
+    f_hi = np.min(fchans)
+    f_lo = f_hi + foff
     impulse_time_max = width_boxcar + get_dm_smearing(f_lo, f_hi, coherent_dm)
     print(f"Maximum impulse time: {impulse_time_max:.2f} s")
 
@@ -375,7 +376,6 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle):
     impulse[:, idx_start:idx_end] = 1.0
 
     # dm sweep
-    fchans = fch1 + foff * np.arange(nchan)
     for ichan, f_hi in enumerate(fchans):
         f_lo = f_hi + foff
         sweep_end = 0.5 * get_dm_smearing(f_lo, f_hi, coherent_dm)
