@@ -329,7 +329,7 @@ def gaussian_window(shape, sigma):
     return np.exp(-(X**2 + Y**2) / (2 * sigma**2))
 
 
-def get_impulse_template(robj, fch1, foff, shape, idx_middle):
+def get_impulse_template(robj, fch1, foff, shape, idx_middle, window):
     """
     Construct a 2D impulse template in FT order.
 
@@ -345,6 +345,8 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle):
         The shape of the output array.
     idx_middle: int
         The location index of the impulse. This is the fiducial point.
+    window: bool
+        Whether to apply a Gaussian window to the template.
 
     Returns
     -------
@@ -371,7 +373,8 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle):
     # the boxcar impulse was ~40 ms wide in june 2023
     # and about 200 ms in may 2024
     # and about 670 ms in nov 2025
-    width_boxcar = 670.0e-3  # in seconds
+    # make the template slightly too narrow, use 75 %
+    width_boxcar = 150.0e-3  # in seconds
 
     # this is the dispersive sweep in the lowest frequency channel
     f_hi = np.min(fchans)
@@ -406,7 +409,9 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle):
             idx_start = 0
         impulse[ichan, idx_start:idx_middle] = 1.0
 
-    impulse *= gaussian_window(shape, sigma=int(np.ceil(0.5 * impulse_nsamp)))
+    if window:
+        sigma = int(np.ceil(0.5 * impulse_time_max / robj.your_header.tsamp))
+        impulse *= gaussian_window(shape, sigma=sigma)
 
     return impulse
 
@@ -530,7 +535,7 @@ def main():
 
     # assemble the impulse template for the 6-min analogue re-pointing jumps
     impulse = get_impulse_template(
-        robj, fch1, foff, shape=(nchan, gulp), idx_middle=gulp // 2
+        robj, fch1, foff, shape=(nchan, gulp), idx_middle=gulp // 2, window=True
     )
     impulse -= np.mean(impulse)
     impulse /= np.linalg.norm(impulse)
@@ -586,12 +591,17 @@ def main():
             if args.plot:
                 plot_data_2d(data, "data")
                 plot_data_2d(impulse, "template")
-                plot_data_2d(normcorr, "normed correlation", showmax=True)
+                plot_data_2d(normcorr, "correlation", showmax=True)
 
             if np.max(normcorr) > 0.1:
                 # remove the sweep
                 zap_array = get_impulse_template(
-                    robj, fch1, foff, shape=(nchan, nsamp), idx_middle=argmax_sample
+                    robj,
+                    fch1,
+                    foff,
+                    shape=(nchan, nsamp),
+                    idx_middle=argmax_sample,
+                    window=False,
                 )
                 zap_array += 1.0
                 _mask = np.isclose(zap_array, 2.0)
