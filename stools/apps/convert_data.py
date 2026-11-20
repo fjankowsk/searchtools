@@ -316,7 +316,7 @@ def get_dm_smearing(f_lo, f_hi, dm):
     return dt
 
 
-def get_impulse_template(robj, shape, idx_middle):
+def get_impulse_template(robj, fch1, foff, shape, idx_middle):
     """
     Construct a 2D impulse template in FT order.
 
@@ -324,6 +324,10 @@ def get_impulse_template(robj, shape, idx_middle):
     ----------
     robj: ~your.Your
         The input object.
+    fch1: float
+        The frequency of the first (highest) channel.
+    foff: float
+        The channel bandwidth foff < 0.
     shape: tuple
         The shape of the output array.
     idx_middle: int
@@ -338,6 +342,7 @@ def get_impulse_template(robj, shape, idx_middle):
     nchan = shape[0]
     nsamp = shape[1]
 
+    assert foff < 0
     assert 0 <= idx_middle <= nsamp - 1
 
     # coherent dedispersion dm
@@ -345,8 +350,8 @@ def get_impulse_template(robj, shape, idx_middle):
 
     # assemble the impulse template
     # boxcar width of the impulse plus twice the dm smearing time
-    f_lo = robj.fch1
-    f_hi = f_lo + robj.foff
+    f_hi = fch1
+    f_lo = fch1 + foff
     impulse_time_max = 0.2 + get_dm_smearing(f_lo, f_hi, coherent_dm)
     try:
         impulse_time_max = impulse_time_max[0]
@@ -371,8 +376,9 @@ def get_impulse_template(robj, shape, idx_middle):
     impulse[:, idx_start:idx_end] = 1.0
 
     # dm sweep
-    for ichan, f_lo in enumerate(robj.freqs):
-        f_hi = f_lo + robj.foff
+    fchans = fch1 + foff * np.arange(nchan)
+    for ichan, f_hi in fchans:
+        f_lo = f_hi + foff
         sweep_end = 0.5 * get_dm_smearing(f_lo, f_hi, coherent_dm)
         delta_sweep = int(np.ceil(sweep_end / robj.your_header.tsamp))
 
@@ -387,10 +393,6 @@ def get_impulse_template(robj, shape, idx_middle):
         if idx_start < 0:
             idx_start = 0
         impulse[ichan, idx_start:idx_middle] = 1.0
-
-    # flip frequency band
-    if robj.foff > 0:
-        impulse = np.flipud(impulse)
 
     return impulse
 
@@ -513,7 +515,9 @@ def main():
     print(f"Data were coherently dedispersed at the DM: {coherent_dm} pc/cm3")
 
     # assemble the impulse template for the 6-min analogue re-pointing jumps
-    impulse = get_impulse_template(robj, shape=(nchan, gulp), idx_middle=gulp // 2)
+    impulse = get_impulse_template(
+        robj, fch1, foff, shape=(nchan, gulp), idx_middle=gulp // 2
+    )
     impulse -= np.mean(impulse)
     impulse /= np.linalg.norm(impulse)
 
@@ -526,17 +530,17 @@ def main():
         assert data.shape[0] == nsamp
         assert data.shape[1] == nchan
 
-        if args.plot:
-            plot_data_2d(np.flipud(data.T), "loaded")
-
-        # flip frequency band
-        if robj.foff > 0:
-            data = np.flip(data, axis=1)
-
         # transpose to FT order
         data = data.T
         assert data.shape[0] == nchan
         assert data.shape[1] == nsamp
+
+        # flip frequency band
+        if robj.foff > 0:
+            data = np.flip(data, axis=0)
+
+        if args.plot:
+            plot_data_2d(data, "loaded")
 
         # normalise
         data, _, _ = normalise(data)
@@ -565,7 +569,7 @@ def main():
             if np.max(corr) > 0.1:
                 # remove the sweep
                 zap_array = get_impulse_template(
-                    robj, shape=(nchan, nsamp), idx_middle=argmax_sample
+                    fch1, foff, shape=(nchan, nsamp), idx_middle=argmax_sample
                 )
                 zap_array += 1.0
                 _mask = np.isclose(zap_array, 2.0)
