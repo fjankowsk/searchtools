@@ -578,7 +578,7 @@ def main():
             _corr = cross_correlate_2d(_chunk, impulse, mode="same")
             normcorr = np.where(local_norm > 1e-12, _corr / local_norm, 0.0)
 
-            print("Maximum cross-correlation: {0:.4f} {1:.4f}".format(np.max(normcorr)))
+            print("Maximum cross-correlation: {0:.4f}".format(np.max(normcorr)))
             argmax = np.argmax(normcorr)
             argmax = np.unravel_index(argmax, normcorr.shape)
             argmax_sample = argmax[1]
