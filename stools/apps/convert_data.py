@@ -569,7 +569,7 @@ def main():
             if np.max(corr) > 0.1:
                 # remove the sweep
                 zap_array = get_impulse_template(
-                    fch1, foff, shape=(nchan, nsamp), idx_middle=argmax_sample
+                    robj, fch1, foff, shape=(nchan, nsamp), idx_middle=argmax_sample
                 )
                 zap_array += 1.0
                 _mask = np.isclose(zap_array, 2.0)
