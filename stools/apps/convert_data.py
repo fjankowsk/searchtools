@@ -374,7 +374,7 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle, window):
     # and about 200 ms in may 2024
     # and about 670 ms in nov 2025
     # make the template slightly too narrow, use 75 %
-    width_boxcar = 150.0e-3  # in seconds
+    width_boxcar = 30.0e-3  # in seconds
 
     # this is the dispersive sweep in the lowest frequency channel
     f_hi = np.min(fchans)
