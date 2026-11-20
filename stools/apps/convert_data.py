@@ -552,9 +552,23 @@ def main():
             # with a matched boxcar filter in the frequency - time domain
             _chunk = data - np.mean(data)
             _chunk /= np.linalg.norm(_chunk)
-            corr = cross_correlate_2d(_chunk, impulse, mode="same")
 
-            print("Maximum cross-correlation: {0:.4f}".format(np.max(corr)))
+            ones = np.ones_like(impulse)
+            s_sum = cross_correlate_2d(_chunk, ones, mode="same")
+            ss_sum = cross_correlate_2d(_chunk**2, ones, mode="same")
+
+            n = impulse.size
+            # zero-mean, unit-norm window at each position
+            local_norm = np.sqrt(ss_sum - s_sum**2 / n)
+
+            corr = cross_correlate_2d(_chunk, impulse, mode="same")
+            normcorr = np.where(local_norm > 1e-12, corr / local_norm, 0.0)
+
+            print(
+                "Maximum cross-correlation: {0:.4f} {1:.4f}".format(
+                    np.max(corr), np.max(normcorr)
+                )
+            )
             argmax = np.argmax(corr)
             argmax = np.unravel_index(argmax, corr.shape)
             argmax_sample = argmax[1]
@@ -564,6 +578,7 @@ def main():
                 plot_data_2d(data, "data")
                 plot_data_2d(impulse, "template")
                 plot_data_2d(corr, "correlation", showmax=True)
+                plot_data_2d(normcorr, "normed correlation", showmax=True)
 
             if np.max(corr) > 0.1:
                 # remove the sweep
