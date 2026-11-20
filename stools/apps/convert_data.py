@@ -363,7 +363,8 @@ def get_impulse_template(robj, shape, idx_middle):
     # boxcar impulse
     # the boxcar impulse was ~40 ms wide in june 2023
     # and about 200 ms in may 2024
-    nsamp_boxcar = int(np.ceil(40.0e-3 / robj.your_header.tsamp))
+    width_boxcar = 40.0e-3 # in seconds
+    nsamp_boxcar = int(np.ceil(width_boxcar / robj.your_header.tsamp))
     nsamp_boxcar_half = int(np.ceil(0.5 * nsamp_boxcar))
     idx_start = idx_middle - nsamp_boxcar_half
     idx_end = idx_middle + nsamp_boxcar_half
@@ -498,7 +499,8 @@ def main():
 
     # running median window size for baseline flattening
     if args.rmedian:
-        mparams = {"window": int(np.ceil(20.0 / robj.your_header.tsamp))}
+        rmedian_window = 20.0  # in seconds
+        mparams = {"window": int(np.ceil(rmedian_window / robj.your_header.tsamp))}
         print(
             "Running median window size: {0} samples, {1:.1f} seconds".format(
                 mparams["window"], mparams["window"] * robj.your_header.tsamp
@@ -561,22 +563,18 @@ def main():
 
             if np.max(corr) > 0.1:
                 # remove the sweep
-                for offset in [0]:
-                    zap_array = get_impulse_template(
-                        robj, shape=(nchan, nsamp), idx_middle=argmax_sample + offset
-                    )
-                    zap_array += 1.0
-                    _mask = np.isclose(zap_array, 2.0)
-                    zap_array[_mask] = 0.0
+                zap_array = get_impulse_template(
+                    robj, shape=(nchan, nsamp), idx_middle=argmax_sample
+                )
+                zap_array += 1.0
+                _mask = np.isclose(zap_array, 2.0)
+                zap_array[_mask] = 0.0
 
-                    data = data * zap_array
+                data = data * zap_array
 
                 if args.plot:
                     plot_data_2d(zap_array, "zap-array")
                     plot_data_2d(data, "post-zap")
-
-        if args.plot:
-            input("Press any key.")
 
         if args.rfi:
             # iqrm & acc1 masks

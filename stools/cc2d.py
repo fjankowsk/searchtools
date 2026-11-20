@@ -89,7 +89,7 @@ def cross_correlate_2d(
         hf = fft2(hadj, padded_shape, workers=workers)
     else:
         reusables = h
-        (hf, swap, padded_shape, unpad_h, unpad_w) = reusables
+        hf, swap, padded_shape, unpad_h, unpad_w = reusables
         if swap:
             xadj, hadj = h, x
         else:
