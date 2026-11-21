@@ -84,6 +84,18 @@ Select the operating mode depending on your data.
 ```
 
 ```console
+$ stools-plot-fdmt-prepsub -h
+usage: stools-plot-fdmt-prepsub [-h] [--tscrunch TSCRUNCH] [--window WINDOW]
+
+Plot a DM trial - time diagram from PRESTO's prepsubband output.
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --tscrunch TSCRUNCH  Decimate the data in time by this factor. (default: None)
+  --window WINDOW      Time window of the running median in seconds. (default: 30.0)
+```
+
+```console
 $ stools-plot-search -h
 usage: stools-plot-search [-h] [-o]
 
