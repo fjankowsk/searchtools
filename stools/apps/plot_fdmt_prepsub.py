@@ -31,6 +31,15 @@ def parse_args():
     )
 
     parser.add_argument(
+        "-o",
+        "--output",
+        dest="output",
+        action="store_true",
+        default=False,
+        help="Output plots to file rather than to screen.",
+    )
+
+    parser.add_argument(
         "--tscrunch",
         type=int,
         dest="tscrunch",
@@ -263,7 +272,11 @@ def main():
 
     fig.tight_layout()
 
-    plt.show()
+    fig.savefig("candidate_fdmt_timeline.png", bbox_inches="tight", dpi=300)
+
+    if not args.output:
+        plt.show()
+
     print("All done.")
 
 
