@@ -4,6 +4,7 @@
 #
 
 import argparse
+import sys
 
 from astropy.coordinates import SkyCoord
 import matplotlib.pyplot as plt
@@ -33,6 +34,18 @@ def parse_args():
     )
 
     parser.add_argument("file", type=str, help="Filename of PSRFITS file to process.")
+
+    parser.add_argument(
+        "-m",
+        "--mask",
+        action="append",
+        type=float,
+        dest="mask",
+        nargs=2,
+        metavar=("start", "end"),
+        default=None,
+        help="Mask the static frequency range given in MHz from start to end inclusive. Can use several times to specify multiple frequency ranges.",
+    )
 
     parser.add_argument(
         "-o",
@@ -87,6 +100,26 @@ def parse_args():
     args = parser.parse_args()
 
     return args
+
+
+def check_args(args):
+    """
+    Sanity check the commandline arguments.
+
+    Parameters
+    ----------
+    args: populated namespace
+        The commandline arguments.
+    """
+
+    # sanity check freqeuncy mask
+    if args.mask is not None:
+        for item in args.mask:
+            if item[0] > 0 and item[1] > 0 and item[0] < item[1]:
+                pass
+            else:
+                print(f"Mask frequencies are invalid: {item[0]}, {item[1]}")
+                sys.exit(1)
 
 
 def running_median(t_data, params):
@@ -413,6 +446,7 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle, window):
 
 def main():
     args = parse_args()
+    check_args(args)
     plt.ion()
 
     nbit = 8
@@ -529,12 +563,27 @@ def main():
     print(f"Data were coherently dedispersed at the DM: {coherent_dm} pc/cm3")
 
     # assemble the impulse template for the 6-min analogue re-pointing jumps
-    impulse = get_impulse_template(
-        robj, fch1, foff, shape=(nchan, gulp), idx_middle=gulp // 2, window=True
-    )
-    impulse -= np.mean(impulse)
-    impulse /= np.linalg.norm(impulse)
-    impulse_ones = np.ones_like(impulse)
+    if args.twodcorr:
+        impulse = get_impulse_template(
+            robj, fch1, foff, shape=(nchan, gulp), idx_middle=gulp // 2, window=True
+        )
+        impulse -= np.mean(impulse)
+        impulse /= np.linalg.norm(impulse)
+        impulse_ones = np.ones_like(impulse)
+
+    # build static frequency zap mask
+    if args.mask is not None:
+        print(f"Using static frequency zap mask: {args.mask}")
+        fchans = fch1 + foff * np.arange(nchan)
+
+        # do not zap by default
+        freqzapmask = np.zeros(nchan, dtype=bool)
+
+        for item in args.mask:
+            _mask = (fchans >= item[0]) & (fchans <= item[1])
+            freqzapmask[_mask] = True
+
+        print(f"Static frequency zap mask: {freqzapmask}")
 
     # determine these from the first gulp
     data_offset = None
@@ -560,6 +609,13 @@ def main():
 
         if args.plot:
             plot_data_2d(data, "loaded")
+
+        # apply static frequency zap mask
+        if args.mask is not None:
+            data[freqzapmask, :] = 0.0
+
+        if args.plot:
+            plot_data_2d(data, "frequency masked")
 
         # normalise
         data, _, _ = normalise(data)
