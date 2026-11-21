@@ -73,7 +73,7 @@ def parse_args():
         dest="twodcorr",
         action="store_true",
         default=False,
-        help="Remove the 6 minute analogue pointing jumps by cross-correlating with a 2D template.",
+        help="Remove the NenuFAR 6 minute analogue re-pointing jumps by cross-correlating with a 2D impulse template.",
     )
 
     parser.add_argument(
