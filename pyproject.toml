@@ -13,7 +13,9 @@ name = "stools"
 dynamic = ["version"]
 dependencies = [
   "astropy",
+  "matplotlib",
   "numpy",
+  "pandas",
   "scipy",
   "tqdm",
   "your",
@@ -44,6 +46,7 @@ develop = [
 stools-align-lanes = "stools.apps.align_lanes:main"
 stools-convert-data = "stools.apps.convert_data:main"
 stools-fix-chunks = "stools.apps.fix_chunks:main"
+stools-plot-search = "stools.apps.plot_search:main"
 stools-truncate-rows = "stools.apps.truncate_rows:main"
 
 [project.urls]
