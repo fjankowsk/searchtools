@@ -651,8 +651,7 @@ def main():
 
         # determine data offset and scale from the first gulp
         if data_offset is None:
-            mask_zapped = np.isclose(data, 0.0)
-            data_offset = np.mean(data[~mask_zapped])
+            data_offset = np.mean(data)
             zero_offset = 2 ** (nbit - 1) - 0.5
             data_scale = (np.max(data) - data_offset) / float(zero_offset - 0.5)
 
