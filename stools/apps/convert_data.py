@@ -286,7 +286,7 @@ def convert_to_integer(data, nbit=8, data_offset=None, data_scale=None):
 
     if data_scale is None:
         # add some extra dynamic range
-        data_scale = (np.max(data) - data_offset) / float(zero_offset - 0.5)
+        data_scale = (np.max(data) - data_offset) / (zero_offset - 0.5)
 
     print(
         f"Zero offset, data offset, data scale: {zero_offset}, {data_offset}, {data_scale}"
@@ -707,9 +707,10 @@ def main():
 
         # determine data offset and scale from the first gulp
         if data_offset is None:
-            data_offset = np.mean(data)
+            data_offset = np.median(data)
+            data_max = np.quantile(data, 0.99)
             zero_offset = 2 ** (nbit - 1) - 0.5
-            data_scale = (np.max(data) - data_offset) / float(zero_offset - 0.5)
+            data_scale = (data_max - data_offset) / (zero_offset - 0.5)
 
         # decimate the FT data in time
         if args.tscrunch is not None:
