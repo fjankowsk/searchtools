@@ -35,7 +35,7 @@ This program time-aligns and splices frequency sub-band data together. It works 
 
 ```console
 $ stools-convert-data -h
-usage: stools-convert-data [-h] [-o filename] [--plot] [--rfi] [--rmedian] [--2dcorr] [--tscrunch TSCRUNCH] file
+usage: stools-convert-data [-h] [-m start end] [-o filename] [--plot] [--rfi] [--rmedian] [--tscrunch TSCRUNCH] [--2dcorr] file
 
 Convert PSRFITS to SIGPROC filterbank data.
 
@@ -44,14 +44,17 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+  -m start end, --mask start end
+                        Mask the static frequency range given in MHz from start to end inclusive. Can use several times to specify
+                        multiple frequency ranges. (default: None)
   -o filename, --output filename
                         Name of the output SIGPROC filerbank file. (default: converted.fil)
   --plot                Display the data at each step. (default: False)
   --rfi                 Perform RFI excision. (default: False)
-  --rmedian             Remove a running median from the data in each channel to flatten the baseline and bandpass. (default:
-                        False)
-  --2dcorr              Remove the 6 minute analogue pointing jumps by cross-correlating with a 2D template. (default: False)
+  --rmedian             Remove a running median from the data in each channel to flatten the baseline and bandpass. (default: False)
   --tscrunch TSCRUNCH   Decimate the data in time by this factor. (default: None)
+  --2dcorr              Remove the NenuFAR 6 minute analogue re-pointing jumps by cross-correlating with a 2D impulse template. (default:
+                        False)
 ```
 
 ```console
@@ -78,6 +81,17 @@ Select the operating mode depending on your data.
 * Use the 'default' mode if the telescope backend advances the NSUBOFFS value, but keeps the high-resolution time stamp (STT_IMJD, STT_SMJD, and STT_OFFS) from the first file. This is the case for NRT data.
 
 * Use the 'parkes' mode if the telescope backend advances BOTH the high-resolution multi-chunk time stamp AND the NSUBOFFS value. This is the case for Parkes UWL / Medusa data.
+```
+
+```console
+$ stools-plot-search -h
+usage: stools-plot-search [-h] [-o]
+
+Plot single pulse search output.
+
+optional arguments:
+  -h, --help    show this help message and exit
+  -o, --output  Output plots to file rather than to screen. (default: False)
 ```
 
 ```console
