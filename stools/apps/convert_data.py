@@ -69,19 +69,19 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--2dcorr",
-        dest="twodcorr",
-        action="store_true",
-        default=False,
-        help="Remove the NenuFAR 6 minute analogue re-pointing jumps by cross-correlating with a 2D impulse template.",
-    )
-
-    parser.add_argument(
         "--tscrunch",
         type=int,
         dest="tscrunch",
         default=None,
         help="Decimate the data in time by this factor.",
+    )
+
+    parser.add_argument(
+        "--2dcorr",
+        dest="twodcorr",
+        action="store_true",
+        default=False,
+        help="Remove the NenuFAR 6 minute analogue re-pointing jumps by cross-correlating with a 2D impulse template.",
     )
 
     args = parser.parse_args()
