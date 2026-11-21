@@ -258,7 +258,6 @@ def main():
     # colour scale selection
     vmin = np.min(total)
     vmax = 0.75 * np.max(total)
-    print(vmin, vmax)
     norm = mcolors.Normalize(vmin=vmin, vmax=vmax, clip=True)
 
     axs[4].imshow(
