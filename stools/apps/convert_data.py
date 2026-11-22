@@ -447,13 +447,14 @@ def time_shift_detection(data, template):
     """
     Per-channel 1D time correlation, summed over frequency.
     Handles edge clipping via overlap normalization.
+    Assumes FT ordered input data and template.
 
     Parameters
     ----------
-    data: (T, F)
-        The real input data array in TF order.
-    template: (T_t, F)
-        The template real array in TF order. It may be zero-padded and will be auto-trimmed.
+    data: (F, T)
+        The real input data array in FT order.
+    template: (F, T_t)
+        The template real array in FT order. It may be zero-padded and will be auto-trimmed.
 
     Returns
     -------
@@ -461,39 +462,39 @@ def time_shift_detection(data, template):
         The normalized cross correlation.
     """
 
-    T = data.shape[0]
-    T_t_full = template.shape[0]
+    F, T = data.shape
+    T_t_full = template.shape[1]
     assert (
-        data.shape[1] == template.shape[1]
+        data.shape[0] == template.shape[0]
     ), f"Data: {data.shape}, template: {template.shape}"
 
     # auto-trim template to non-zero region (with 1-sample margin)
-    row_energy = np.sum(template**2, axis=1)
+    row_energy = np.sum(template**2, axis=0)
     nonzero = np.where(row_energy > 0)[0]
     if len(nonzero) == 0:
         raise ValueError("Template is entirely zero.")
 
     t0, t1 = max(nonzero[0] - 1, 0), min(nonzero[-1] + 2, T_t_full)
-    template = template[t0:t1]
-    T_t = template.shape[0]
+    template = template[:, t0:t1]
+    T_t = template.shape[1]
 
     # select good fft size
     fft_len = next_fast_len(T + T_t - 1)
 
     # batched rfft
     # n=fft_len zero-pads automatically
-    D = rfft(data, n=fft_len, axis=0)  # (fft_len//2+1, F)
-    P = rfft(template, n=fft_len, axis=0)  # (fft_len//2+1, F)
+    D = rfft(data, n=fft_len, axis=1)  # (F, fft_len//2+1)
+    P = rfft(template, n=fft_len, axis=1)  # (F, fft_len//2+1)
 
     # correlation via conjugate product and irfft
-    R_full = np.real(irfft(D * P.conj(), n=fft_len, axis=0)).sum(axis=1)
+    R_full = np.real(irfft(D * P.conj(), n=fft_len, axis=1)).sum(axis=0)
 
     # crop to "same" size (template centre at each data sample)
     center = T_t // 2
     R = R_full[center : center + T]
 
     # overlap normalization to handle edge clipping
-    row_e = np.sum(template**2, axis=1)
+    row_e = np.sum(template**2, axis=0)
     cum = np.concatenate([[0.0], np.cumsum(row_e)])
     i = np.arange(T)
     ls = np.maximum(0, center - i)
