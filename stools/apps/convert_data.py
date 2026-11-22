@@ -694,7 +694,7 @@ def main():
             if args.plot:
                 plot_data_2d(data, "data")
                 plot_data_2d(impulse, "template")
-                plot_data_2d(normcorr, "correlation", showmax=True)
+                plot_data_1d(normcorr, "correlation")
 
             if np.max(normcorr) > 0.1:
                 # remove the time samples corresponding to the maximum sweep
