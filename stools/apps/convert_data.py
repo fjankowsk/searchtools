@@ -685,7 +685,7 @@ def main():
             _chunk = data - np.mean(data, axis=0)
             stdev = np.std(_chunk, axis=0)
             mask = stdev > 0
-            _chunk[mask, :] /= stdev[mask]
+            _chunk[:, mask] /= stdev[mask]
 
             normcorr = time_shift_detection(_chunk, impulse)
             print("Maximum cross-correlation: {0:.4f}".format(np.max(normcorr)))
