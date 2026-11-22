@@ -11,11 +11,10 @@ import matplotlib.pyplot as plt
 from mtcutils.core import automatic_channel_mask_fj, normalise, zdot
 import numpy as np
 import pandas as pd
+from scipy.fft import rfft, irfft, next_fast_len
 from tqdm import tqdm
 from your import Your
 from your.formats.filwriter import make_sigproc_object
-
-from stools.cc2d import cross_correlate_2d
 
 
 def parse_args():
@@ -444,6 +443,66 @@ def get_impulse_template(robj, fch1, foff, shape, idx_middle, window):
     return impulse
 
 
+def time_shift_detection(data, template):
+    """
+    Per-channel 1D time correlation, summed over frequency.
+    Handles edge clipping via overlap normalization.
+
+    Parameters
+    ----------
+    data: (T, F)
+        The real input data array in TF order.
+    template: (T_t, F)
+        The template real array in TF order. It may be zero-padded and will be auto-trimmed.
+
+    Returns
+    -------
+    R_norm: (T,)
+        The normalized cross correlation.
+    """
+
+    T = data.shape[0]
+    T_t_full = template.shape[0]
+    assert data.shape[1] == template.shape[1]
+
+    # auto-trim template to non-zero region (with 1-sample margin)
+    row_energy = np.sum(template**2, axis=1)
+    nonzero = np.where(row_energy > 0)[0]
+    if len(nonzero) == 0:
+        raise ValueError("Template is entirely zero.")
+
+    t0, t1 = max(nonzero[0] - 1, 0), min(nonzero[-1] + 2, T_t_full)
+    template = template[t0:t1]
+    T_t = template.shape[0]
+
+    # select good fft size
+    fft_len = next_fast_len(T + T_t - 1)
+
+    # batched rfft
+    # n=fft_len zero-pads automatically
+    D = rfft(data, n=fft_len, axis=0)  # (fft_len//2+1, F)
+    P = rfft(template, n=fft_len, axis=0)  # (fft_len//2+1, F)
+
+    # correlation via conjugate product and irfft
+    R_full = np.real(irfft(D * P.conj(), n=fft_len, axis=0)).sum(axis=1)
+
+    # crop to "same" size (template centre at each data sample)
+    center = T_t // 2
+    R = R_full[center : center + T]
+
+    # overlap normalization to handle edge clipping
+    row_e = np.sum(template**2, axis=1)
+    cum = np.concatenate([[0.0], np.cumsum(row_e)])
+    i = np.arange(T)
+    ls = np.maximum(0, center - i)
+    le = np.minimum(T_t, T - i + center)
+    overlap_energy = cum[le] - cum[ls]
+
+    R_norm = R / np.where(overlap_energy > 0, overlap_energy, 1.0)
+
+    return R_norm
+
+
 def main():
     args = parse_args()
     check_args(args)
@@ -565,11 +624,8 @@ def main():
     # assemble the impulse template for the 6-min analogue re-pointing jumps
     if args.twodcorr:
         impulse = get_impulse_template(
-            robj, fch1, foff, shape=(nchan, gulp), idx_middle=gulp // 2, window=True
+            robj, fch1, foff, shape=(nchan, gulp), idx_middle=gulp // 2, window=False
         )
-        impulse -= np.mean(impulse)
-        impulse /= np.linalg.norm(impulse)
-        impulse_ones = np.ones_like(impulse)
 
     # build static frequency zap mask
     if args.mask is not None:
@@ -626,18 +682,12 @@ def main():
         if args.twodcorr:
             # find the 6-min analogue re-pointing jumps by 2d correlating
             # with a matched boxcar filter in the frequency - time domain
-            _chunk = data - np.mean(data)
-            _chunk /= np.linalg.norm(_chunk)
+            _chunk = data - np.mean(data, axis=0)
+            stdev = np.std(_chunk, axis=0)
+            mask = stdev > 0
+            _chunk[:, mask] /= stdev[mask]
 
-            s_sum = cross_correlate_2d(_chunk, impulse_ones, mode="same")
-            ss_sum = cross_correlate_2d(_chunk**2, impulse_ones, mode="same")
-
-            # zero-mean, unit-norm window at each position
-            local_norm = np.sqrt(ss_sum - s_sum**2 / impulse.size)
-
-            _corr = cross_correlate_2d(_chunk, impulse, mode="same")
-            normcorr = np.where(local_norm > 1e-12, _corr / local_norm, 0.0)
-
+            normcorr = time_shift_detection(_chunk, impulse)
             print("Maximum cross-correlation: {0:.4f}".format(np.max(normcorr)))
             argmax = np.argmax(normcorr)
             argmax = np.unravel_index(argmax, normcorr.shape)
