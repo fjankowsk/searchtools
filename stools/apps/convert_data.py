@@ -463,7 +463,9 @@ def time_shift_detection(data, template):
 
     T = data.shape[0]
     T_t_full = template.shape[0]
-    assert data.shape[1] == template.shape[1]
+    assert (
+        data.shape[1] == template.shape[1]
+    ), f"Data: {data.shape}, template: {template.shape}"
 
     # auto-trim template to non-zero region (with 1-sample margin)
     row_energy = np.sum(template**2, axis=1)
