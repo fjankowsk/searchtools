@@ -689,9 +689,7 @@ def main():
 
             normcorr = time_shift_detection(_chunk, impulse)
             print("Maximum cross-correlation: {0:.4f}".format(np.max(normcorr)))
-            argmax = np.argmax(normcorr)
-            argmax = np.unravel_index(argmax, normcorr.shape)
-            idx_middle = argmax[1]
+            idx_middle = np.argmax(normcorr)
 
             if args.plot:
                 plot_data_2d(data, "data")
