@@ -35,7 +35,9 @@ This program time-aligns and splices frequency sub-band data together. It works 
 
 ```console
 $ stools-convert-data -h
-usage: stools-convert-data [-h] [-m start end] [-o filename] [--plot] [--rfi] [--rmedian] [--tscrunch TSCRUNCH] [--2dcorr] file
+usage: stools-convert-data [-h] [-m start end] [-o filename] [--plot] [--rfi] [--rmedian] [--tscrunch TSCRUNCH]
+                           [--2dcorr]
+                           file
 
 Convert PSRFITS to SIGPROC filterbank data.
 
@@ -45,16 +47,17 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -m start end, --mask start end
-                        Mask the static frequency range given in MHz from start to end inclusive. Can use several times to specify
-                        multiple frequency ranges. (default: None)
+                        Mask the static frequency range given in MHz from start to end inclusive. Can use several times
+                        to specify multiple frequency ranges. (default: None)
   -o filename, --output filename
                         Name of the output SIGPROC filerbank file. (default: converted.fil)
   --plot                Display the data at each step. (default: False)
   --rfi                 Perform RFI excision. (default: False)
-  --rmedian             Remove a running median from the data in each channel to flatten the baseline and bandpass. (default: False)
+  --rmedian             Remove a running median from the data in each channel to flatten the baseline and bandpass.
+                        (default: False)
   --tscrunch TSCRUNCH   Decimate the data in time by this factor. (default: None)
-  --2dcorr              Remove the NenuFAR 6 minute analogue re-pointing jumps by cross-correlating with a 2D impulse template. (default:
-                        False)
+  --2dcorr              Remove the NenuFAR 6 minute analogue re-pointing jumps by cross-correlating with a 2D impulse
+                        template. (default: False)
 ```
 
 ```console
@@ -70,8 +73,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --mode {default,parkes}
                         Operating mode. In 'default' mode, it recomputes the starting time by advancing it by the given
-                        NSUBOFFS offsets and resets NSUBOFFS to zero. In 'parkes' mode, it only resets the NSUBOFFS values to
-                        zero. (default: default)
+                        NSUBOFFS offsets and resets NSUBOFFS to zero. In 'parkes' mode, it only resets the NSUBOFFS
+                        values to zero. (default: default)
 
 This program fixes time-tagging issues in multi-chunk, contiguous PSRFITS search mode data. Contiguous search mode data can be split into several files (data chunks), where the second and further files are identified by non-zero values of the NSUBOFFS keyword in the SUBINT HDU, which specifies the subint offset from the start of the first file. Later files carry the starting time of the first file. Processing software is expected to advance the starting time of the later files by the NSUBOFFS amount. However, in practice, this does not work in DSPSR (May 2026).
 
